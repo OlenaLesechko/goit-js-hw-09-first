@@ -1,44 +1,39 @@
-const feedbackFormData = "feedback-form-state";
-
-const form = document.querySelector(".feedback-form");
+const formEl = document.querySelector('.feedback-form');
+const localStorageFeedbackKey = 'feedback-form-state';
 
 try {
-    const dataFromStorage = JSON.parse(localStorage.getItem(feedbackFormData));
-    const {email, message} = dataFromStorage;
-    
-    if(dataFromStorage) {
-        form.elements.email.value = email;
-        form.elements.message.value = message;
-    };
+  const initialFormData = JSON.parse(
+    localStorage.getItem(localStorageFeedbackKey)
+  );
 
-} catch {
-    if (!JSON.parse(localStorage.getItem(feedbackFormData))) {
-        console.log();
-    }else {
-        console.log("Parse error!");
+  Array.from(formEl.elements).forEach(element => {
+    if (initialFormData) {
+      element.value = initialFormData[element.name];
     }
+  });
+} catch {
+  console.error('PARSE FORM STORAGE ERROR');
 }
 
-form.addEventListener("input", () => {
-    const formData = new FormData(form);
-    const formObject = {};
+const userFeedback = {};
 
-    formData.forEach((value, key) => {
-        formObject[key] = value.trim();
-    })
+formEl.addEventListener('input', e => {
+  const data = new FormData(formEl);
+  data.forEach((value, key) => {
+    userFeedback[key] = value;
+    localStorage.setItem(localStorageFeedbackKey, JSON.stringify(userFeedback));
+  });
+});
 
-    localStorage.setItem(feedbackFormData, JSON.stringify(formObject))
-})
-
-form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const formData = JSON.parse(localStorage.getItem(feedbackFormData));
-
-    if (formData && formData.email !== "" && formData.message !== "") {
-        console.log(formData);
-        localStorage.removeItem(feedbackFormData);
-        form.reset();
-    } else {
-        alert("Все поля формы должны быть заполнены");
-    }
+formEl.addEventListener('submit', e => {
+  e.preventDefault();
+  const login = formEl.elements.email.value.trim();
+  const message = formEl.elements.message.value.trim();
+  if (!login || !message) {
+    alert('All form fields must be filled in');
+  } else {
+    console.log(userFeedback);
+    localStorage.removeItem(localStorageFeedbackKey);
+    formEl.reset();
+  }
 });
